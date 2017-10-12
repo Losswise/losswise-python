@@ -1,9 +1,9 @@
 # losswise-python
 
-To deploy new python package to PyPi do:
+To install this package do:
 
 ```shell
-python setup.py sdist
-python setup.py bdist_wheel --universal
-twine upload dist/*
+pip install losswise
 ```
+
+Please consult <https://docs.losswise.com> for usage instructions.
