@@ -1,3 +1,4 @@
+import os
 import threading
 import json
 import time
@@ -116,16 +117,28 @@ class Graph(object):
 
 
 class Session(object):
-    def __init__(self, tag, max_iter=None, data={}):
-        self.api_key = API_KEY
-        self.tag = tag
-        self.max_iter = max_iter
+    def __init__(self, tag=None, max_iter=None, data={}):
         self.graph_list = []
+        self.max_iter = max_iter
+        self.api_key = API_KEY
+        if tag is None:
+            if 'BUILDKITE_BRANCH' in os.environ:
+                tag = os.environ['BUILDKITE_BRANCH']
+            else:
+                raise RuntimeError("Losswise except a tag to be provided, or the 'BUILDKITE_BRANCH' env var to be set!")
+            self.tag = tag
+        else:
+            self.tag = tag
         json_data = {
             'tag': tag,
             'data': data,
             'max_iter': max_iter
         }
+        json_data['env'] = {}
+        for env_var in ['BUILDKITE_BUILD_URL', 'BUILDKITE_REPO',
+                        'BUILDKITE_PIPELINE_PROVIDER', 'BUILDKITE_BRANCH']:
+            if env_var in os.environ:
+                json_data['env'][env_var] = os.environ[env_var]
         json_message = json.dumps(json_data)
         try:
             r = requests.post(BASE_URL + '/api/v1/sessions',
