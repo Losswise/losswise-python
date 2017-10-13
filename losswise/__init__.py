@@ -125,7 +125,7 @@ class Session(object):
             if 'BUILDKITE_BRANCH' in os.environ:
                 tag = os.environ['BUILDKITE_BRANCH']
             else:
-                raise RuntimeError("Losswise except a tag to be provided, or the 'BUILDKITE_BRANCH' env var to be set!")
+                tag = "default"
             self.tag = tag
         else:
             self.tag = tag
