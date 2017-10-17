@@ -85,6 +85,8 @@ class Graph(object):
 
     def append(self, x, y):
         stats_update = {}
+        for key, val in iteritems(y):
+            y[key] = float(y[key])
         data_new = y.copy()
         data_new['x'] = x
         if self.max_iter is not None:
