@@ -119,11 +119,10 @@ class Graph(object):
 
 
 class Session(object):
-    def __init__(self, tag=None, max_iter=None, data={}, git_model_path=None):
+    def __init__(self, tag=None, max_iter=None, data={}):
         self.graph_list = []
         self.max_iter = max_iter
         self.api_key = API_KEY
-        self.git_model_path = git_model_path
         if tag is None:
             if 'BUILDKITE_BRANCH' in os.environ:
                 tag = os.environ['BUILDKITE_BRANCH']
@@ -186,14 +185,6 @@ class Session(object):
         except requests.exceptions.ConnectionError:
             if WARNINGS:
                 print("Warning: request failed.")
-        if self.git_model_path and 'BUILDKITE_BRANCH' in os.environ:
-            # push new model to github (if specified `git_model_path` and running Buildkite)
-            import subprocess
-            def git(*args):
-                return subprocess.check_call(['git'] + list(args))
-            git("add", self.git_model_path)
-            git("commit", "-a", "-m", "New weights [skip ci].")
-            git("push", "origin", "HEAD:" + os.environ['BUILDKITE_BRANCH'])
 
     def graph(self, title='', xlabel='', ylabel='', kind=''):
         assert kind in ['', 'min', 'max']
