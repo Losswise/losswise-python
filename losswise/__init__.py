@@ -24,28 +24,37 @@ def set_base_url(base_url):
     BASE_URL = base_url
 
 
-queue = queue.Queue()
+work_queue = queue.Queue()
 def worker():
     while True:
-        (x, y, stats, time, graph_id, session_id) = queue.get()
-        json_data = {
-            'x': x,
-            'y': y,
-            'time': time,
-            'graph_id': graph_id,
-            'session_id': session_id,
-            'stats': stats
-        }
-        json_message = json.dumps(json_data)
-        url = BASE_URL + '/api/v1/points'
+        point_list = []
+        stats_map = {}
+        while not work_queue.empty() or len(point_list) == 0:
+            (x, y, stats, t, graph_id, session_id) = work_queue.get()
+            json_data = {
+                'x': x,
+                'y': y,
+                'time': t,
+                'graph_id': graph_id,
+                'session_id': session_id,
+            }
+            stats_map[graph_id] = stats
+            point_list.append(json_data)
+        json_message = json.dumps({'point_list': point_list, 'stats_map': stats_map})
+        url = BASE_URL + '/api/v1/point-list'
         headers = {"Authorization": API_KEY, "Content-type": "application/json"}
-        # TODO: provide warning message is POST fails
         try:
             r = requests.post(url, data=json_message, headers=headers)
         except requests.exceptions.ConnectionError:
             if WARNINGS:
                 print("Warning: request failed.")
-        queue.task_done()
+        for _ in range(len(point_list)):
+            work_queue.task_done()
+
+
+event_thread = Thread(target=worker)
+event_thread.daemon = True
+event_thread.start()
 
 
 class Graph(object):
@@ -70,11 +79,6 @@ class Graph(object):
         else:
             error = json_resp['error']
             raise RuntimeError('Unable to create graph: %s' % (error,))
-        # set up thread for tracking single events
-        thread = Thread(target=worker)
-        thread.daemon = True
-        thread.start()
-        self.thread = thread
         self.stats =  {}
         if kind not in ['min', 'max', None]:
             raise ValueError("'kind' variable must be 'min', 'max', or empty!")
@@ -112,10 +116,7 @@ class Graph(object):
             stats = self.stats
         else:
             stats = {}
-        queue.put((x, y, stats, int(self.now()), self.graph_id, self.tracker.session_id))
-
-    def done(self):
-        queue.join()
+        work_queue.put((x, y, stats, int(self.now()), self.graph_id, self.tracker.session_id))
 
 
 class Session(object):
@@ -175,8 +176,7 @@ class Session(object):
     def done(self):
         self.status = 'complete'
         self.stop_event.set()
-        for graph in self.graph_list:
-            graph.done()
+        work_queue.join()
         json_message = json.dumps({'attributes' : {'status': self.status}})
         try:
             r = requests.patch(BASE_URL + '/api/v1/sessions/' + self.session_id,
