@@ -83,11 +83,20 @@ class Graph(object):
         if kind not in ['min', 'max', None]:
             raise ValueError("'kind' variable must be 'min', 'max', or empty!")
         self.kind = kind
+        self.x = 0
 
     def now(self):
         return time.time()
 
-    def append(self, x, y):
+    def append(self, *args):
+        if len(args) == 1:
+            x = self.x
+            y = args[0]
+        elif len(args) == 2:
+            x = args[0]
+            y = args[1]
+        else:
+            raise ValueError("Append method only accepts one or two arguments.")
         stats_update = {}
         for key, val in iteritems(y):
             y[key] = float(y[key])
@@ -117,6 +126,7 @@ class Graph(object):
         else:
             stats = {}
         work_queue.put((x, y, stats, int(self.now()), self.graph_id, self.tracker.session_id))
+        self.x = self.x + 1
 
 
 class Session(object):
