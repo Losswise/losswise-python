@@ -130,7 +130,7 @@ class Graph(object):
 
 
 class Session(object):
-    def __init__(self, tag=None, max_iter=None, data={}):
+    def __init__(self, tag=None, max_iter=None, params={}):
         self.graph_list = []
         self.max_iter = max_iter
         self.api_key = API_KEY
@@ -144,7 +144,7 @@ class Session(object):
             self.tag = tag
         json_data = {
             'tag': tag,
-            'data': data,
+            'params': params,
             'max_iter': max_iter
         }
         json_data['env'] = {}
