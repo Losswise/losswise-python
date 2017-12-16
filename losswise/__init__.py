@@ -38,7 +38,8 @@ def worker():
                 'graph_id': graph_id,
                 'session_id': session_id,
             }
-            stats_map[graph_id] = stats
+            if any(stats):
+                stats_map[graph_id] = stats
             point_list.append(json_data)
         json_message = json.dumps({'point_list': point_list, 'stats_map': stats_map})
         url = BASE_URL + '/api/v1/point-list'
