@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='losswise',
-    version='1.01',
+    version='1.03',
     description='Official Losswise library for Python',
     long_description=open('README.rst').read(),
     url='https://losswise.com',

@@ -3,15 +3,15 @@ from keras.callbacks import Callback
 
 
 class LosswiseKerasCallback(Callback):
-    def __init__(self, tag=None, data={}, git_model_path=None):
+    def __init__(self, tag=None, params={}):
+        # model hyper parameters, json serializable Python object
         self.tag = tag
-        self.data = data
-        self.git_model_path = git_model_path
+        self.params_data = params
         self.graph_map = {}
         super(LosswiseKerasCallback, self).__init__()
     def on_train_begin(self, logs={}):
         self.max_iter = int(self.params['epochs'] * self.params['samples'] / self.params['batch_size'])
-        self.session = Session(tag=self.tag, max_iter=self.max_iter, data=self.data, git_model_path=self.git_model_path)
+        self.session = Session(tag=self.tag, max_iter=self.max_iter, params=self.params_data)
         self.metric_list = []
         for metric in self.params['metrics']:
             if not metric.startswith('val_'):
