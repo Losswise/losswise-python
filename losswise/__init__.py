@@ -4,6 +4,7 @@ import json
 import time
 import requests
 import random
+import math
 from six.moves import queue
 from six import iteritems
 from threading import Thread
@@ -92,15 +93,19 @@ class Graph(object):
     def append(self, *args):
         if len(args) == 1:
             x = self.x
-            y = args[0]
+            y_raw = args[0]
         elif len(args) == 2:
             x = args[0]
-            y = args[1]
+            y_raw = args[1]
         else:
             raise ValueError("Append method only accepts one or two arguments.")
         stats_update = {}
-        for key, val in iteritems(y):
-            y[key] = float(y[key])
+        y = {}
+        for key, val in iteritems(y_raw):
+            if math.isnan(val):
+                print "Warning: skipping '%s' due to NaN value." % key
+                continue
+            y[key] = float(y_raw[key])
         data_new = y.copy()
         data_new['x'] = x
         if self.max_iter is not None:
