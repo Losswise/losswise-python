@@ -103,7 +103,7 @@ class Graph(object):
         y = {}
         for key, val in iteritems(y_raw):
             if math.isnan(val):
-                print "Warning: skipping '%s' due to NaN value." % key
+                print("Warning: skipping '%s' due to NaN value." % key)
                 continue
             y[key] = float(y_raw[key])
         data_new = y.copy()
