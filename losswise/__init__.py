@@ -7,7 +7,9 @@ import random
 import math
 from six.moves import queue
 from six import iteritems
+import subprocess
 from threading import Thread
+import re
 
 
 API_KEY = None
@@ -23,6 +25,22 @@ def set_api_key(api_key):
 def set_base_url(base_url):
     global BASE_URL
     BASE_URL = base_url
+
+
+def get_git_info():
+    git_info = {'diff' : '', 'branch': '', 'url': ''}
+    try:
+        FNULL = open(os.devnull, 'w')
+        git_info['diff'] = str(subprocess.Popen(['git', 'diff'],
+                               stdout=subprocess.PIPE, stderr=FNULL).communicate()[0])
+        git_info['branch'] = str(subprocess.Popen(['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+                                 stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].replace('\n', ''))
+        git_remote = str(subprocess.Popen(['git', 'remote', '-v'],
+                         stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].split("  ")[0])
+        git_info['url'] = re.findall('\S*\.git', git_remote)[0]
+    except Exception as e:
+        pass
+    return git_info
 
 
 work_queue = queue.Queue()
@@ -140,20 +158,23 @@ class Session(object):
         self.graph_list = []
         self.max_iter = max_iter
         self.api_key = API_KEY
+        git_info = get_git_info()
+        self.tag = 'default'
         if tag is None:
             if 'BUILDKITE_BRANCH' in os.environ:
-                tag = os.environ['BUILDKITE_BRANCH']
-            else:
-                tag = "default"
-            self.tag = tag
+                self.tag = os.environ['BUILDKITE_BRANCH']
+            elif git_info.get('branch', None) is not None:
+                if len(git_info['branch'].replace(" ", "")) > 0:
+                    self.tag = git_info['branch']
         else:
             self.tag = tag
         json_data = {
-            'tag': tag,
+            'tag': self.tag,
             'params': params,
-            'max_iter': max_iter
+            'max_iter': max_iter,
+            'git': git_info,
+            'env': {}
         }
-        json_data['env'] = {}
         for env_var in ['BUILDKITE_BUILD_URL', 'BUILDKITE_REPO',
                         'BUILDKITE_PIPELINE_PROVIDER', 'BUILDKITE_BRANCH']:
             if env_var in os.environ:
