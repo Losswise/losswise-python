@@ -31,12 +31,12 @@ def get_git_info():
     git_info = {'diff' : '', 'branch': '', 'url': ''}
     try:
         FNULL = open(os.devnull, 'w')
-        git_info['diff'] = subprocess.Popen(['git', 'diff'],
-                                            stdout=subprocess.PIPE, stderr=FNULL).communicate()[0]
-        git_info['branch'] = subprocess.Popen(['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
-                                              stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].replace('\n', '')
-        git_remote = subprocess.Popen(['git', 'remote', '-v'],
-                                      stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].split("  ")[0]
+        git_info['diff'] = str(subprocess.Popen(['git', 'diff'],
+                               stdout=subprocess.PIPE, stderr=FNULL).communicate()[0])
+        git_info['branch'] = str(subprocess.Popen(['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+                                 stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].replace('\n', ''))
+        git_remote = str(subprocess.Popen(['git', 'remote', '-v'],
+                         stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].split("  ")[0])
         git_info['url'] = re.findall('\S*\.git', git_remote)[0]
     except Exception as e:
         pass
