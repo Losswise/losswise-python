@@ -223,14 +223,14 @@ class Session(object):
             if WARNINGS:
                 print("Warning: request failed.")
 
-    def graph(self, title='', xlabel='', ylabel='', kind=''):
-        assert kind in ['', 'min', 'max']
+    def graph(self, title='', xlabel='', ylabel='', kind=None):
+        assert kind in [None, 'min', 'max']
         graph = Graph(self, title=title, xlabel=xlabel, ylabel=ylabel, kind=kind, max_iter=self.max_iter)
         self.graph_list.append(graph)
         return graph
 
-    def Graph(self, title='', xlabel='', ylabel='', kind=''):
-        assert kind in ['', 'min', 'max']
+    def Graph(self, title='', xlabel='', ylabel='', kind=None):
+        assert kind in [None, 'min', 'max']
         graph = Graph(self, title=title, xlabel=xlabel, ylabel=ylabel, kind=kind, max_iter=self.max_iter)
         self.graph_list.append(graph)
         return graph
