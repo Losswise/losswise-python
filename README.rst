@@ -30,7 +30,7 @@ Typical usage usually looks like this::
     session = losswise.Session(tag='my_dilated_convnet', max_iter=10, data={'num_params': 10000000})
 
     # create empty graph for loss, keep track of minima here hence kind='min'
-    graph = session.Graph(title='loss', kind='min')
+    graph = session.graph(title='loss', kind='min')
 
     # track artificial loss over time
     for x in xrange(10):
