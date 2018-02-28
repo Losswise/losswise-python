@@ -12,6 +12,8 @@ class LosswiseKerasCallback(Callback):
     def on_train_begin(self, logs={}):
         if 'epochs' in self.params and 'samples' in self.params and 'batch_size' in self.params:
             self.max_iter = int(self.params['epochs'] * self.params['samples'] / self.params['batch_size'])
+        elif 'steps_per_epoch' in self.params and 'epochs' in self.params:
+            self.max_iter = self.params['steps_per_epoch'] * self.params['epochs']
         else:
             self.max_iter = None
         self.session = Session(tag=self.tag, max_iter=self.max_iter, params=self.params_data)
