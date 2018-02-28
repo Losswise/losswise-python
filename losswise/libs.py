@@ -10,7 +10,10 @@ class LosswiseKerasCallback(Callback):
         self.graph_map = {}
         super(LosswiseKerasCallback, self).__init__()
     def on_train_begin(self, logs={}):
-        self.max_iter = int(self.params['epochs'] * self.params['samples'] / self.params['batch_size'])
+        if 'epochs' in self.params and 'samples' in self.params and 'batch_size' in self.params:
+            self.max_iter = int(self.params['epochs'] * self.params['samples'] / self.params['batch_size'])
+        else:
+            self.max_iter = None
         self.session = Session(tag=self.tag, max_iter=self.max_iter, params=self.params_data)
         self.metric_list = []
         for metric in self.params['metrics']:
