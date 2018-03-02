@@ -68,6 +68,9 @@ def worker():
         except requests.exceptions.ConnectionError:
             if WARNINGS:
                 print("Warning: request failed.")
+        except Exception as e:
+            if WARNINGS:
+                print(e)
         for _ in range(len(point_list)):
             work_queue.task_done()
 
@@ -205,6 +208,9 @@ class Session(object):
                 except requests.exceptions.ConnectionError:
                     if WARNINGS:
                         print("Warning: request failed.")
+                except Exception as e:
+                    if WARNINGS:
+                        print(e)
                 time.sleep(30)
         self.thread = Thread(target=keepalive, args=(self.stop_event,))
         self.thread.daemon = True
@@ -222,6 +228,9 @@ class Session(object):
         except requests.exceptions.ConnectionError:
             if WARNINGS:
                 print("Warning: request failed.")
+        except Exception as e:
+            if WARNINGS:
+                print(e)
 
     def graph(self, title='', xlabel='', ylabel='', kind=None):
         assert kind in [None, 'min', 'max']
