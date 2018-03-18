@@ -157,7 +157,7 @@ class Graph(object):
 
 
 class Session(object):
-    def __init__(self, tag=None, max_iter=None, params={}):
+    def __init__(self, tag=None, max_iter=None, params={}, track_git=True):
         self.graph_list = []
         self.max_iter = max_iter
         self.api_key = API_KEY
@@ -175,9 +175,10 @@ class Session(object):
             'tag': self.tag,
             'params': params,
             'max_iter': max_iter,
-            'git': git_info,
             'env': {}
         }
+        if track_git:
+            json_data['git'] = git_info
         for env_var in ['BUILDKITE_BUILD_URL', 'BUILDKITE_REPO',
                         'BUILDKITE_PIPELINE_PROVIDER', 'BUILDKITE_BRANCH']:
             if env_var in os.environ:
