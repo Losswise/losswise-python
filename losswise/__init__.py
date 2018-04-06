@@ -101,7 +101,8 @@ class Graph(object):
             self.graph_id = r.json()['graph_id']
         else:
             error = json_resp['error']
-            raise RuntimeError('Unable to create graph: %s' % (error,))
+            error_msg = 'Unable to create graph: %s' % error
+            raise RuntimeError(error_msg)
         self.stats =  {}
         if kind not in ['min', 'max', None]:
             raise ValueError("'kind' variable must be 'min', 'max', or empty!")
@@ -195,7 +196,8 @@ class Session(object):
             self.session_id = json_resp['session_id']
         else:
             error = json_resp['error']
-            raise RuntimeError('Unable to create session: %s.  Please contact support@losswise.com' % (error,))
+            error_msg = 'Unable to create session: %s. Please contact support@losswise.com' % error
+            raise RuntimeError(error_msg)
         # start monitoring thread
         self.status = 'active'
         self.stop_event = threading.Event()
