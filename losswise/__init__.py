@@ -81,16 +81,28 @@ event_thread.start()
 
 
 class Graph(object):
-    def __init__(self, tracker, xlabel, ylabel, title, kind=None, max_iter=None):
+    def __init__(self, tracker, xlabel, ylabel, title, kind=None, max_iter=None, display_interval=None):
         self.tracker = tracker
         self.kind = kind
         self.max_iter = max_iter
+        if display_interval is not None:
+            self.display_interval = display_interval
+        else:
+            if max_iter is None:
+                print("Losswise warning: please set max_iter or display_interval for optimal user experience.")
+                print("Losswise will track all points without smoothing.")
+                self.display_interval = 1
+            else:
+                self.display_interval = max(1, max_iter // 200)
+            print("Losswise: choosing optimal display_interval = %d for \"%s\" graph." % (self.display_interval, title))
+            print("You may override this default behavior by manually setting display_interval yourself.")
         json_data = {
             'session_id': self.tracker.session_id,
             'xlabel': xlabel,
             'ylabel': ylabel,
             'title': title,
-            'kind': kind
+            'kind': kind,
+            'display_interval': display_interval
         }
         json_message = json.dumps(json_data)
         r = requests.post(BASE_URL + '/api/v1/graphs',
@@ -103,6 +115,7 @@ class Graph(object):
             error = json_resp['error']
             error_msg = 'Unable to create graph: %s' % error
             raise RuntimeError(error_msg)
+        self.tracked_value_map = {}
         self.stats =  {}
         if kind not in ['min', 'max', None]:
             raise ValueError("'kind' variable must be 'min', 'max', or empty!")
@@ -127,7 +140,26 @@ class Graph(object):
             if math.isnan(val):
                 print("Warning: skipping '%s' due to NaN value." % key)
                 continue
-            y[key] = float(y_raw[key])
+            if key in self.tracked_value_map:
+                tracked_value_list = self.tracked_value_map[key]
+                tracked_value_list.append((x, val))
+                if x < self.max_iter - 1 and x % self.display_interval != 0:
+                    return
+                tracked_value_len = len(tracked_value_list)
+                diff = tracked_value_list[tracked_value_len - 1][0] - tracked_value_list[tracked_value_len - 2][0]
+                if diff == 1 and tracked_value_len >= self.display_interval > 1:
+                    xy_tuple_values = tracked_value_list[-self.display_interval:]
+                    y_values = [xy_tuple[1] for xy_tuple in xy_tuple_values]
+                    y_smooth = sum(y_values) / tracked_value_len
+                    y[key] = float(y_smooth)
+                else:
+                    y[key] = float(y_raw[key])
+                    self.tracked_value_map[key] = [(x, val)]
+                if len(tracked_value_list) > 3 * self.display_interval:
+                    del tracked_value_list[:self.display_interval]
+            else:
+                y[key] = float(y_raw[key])
+                self.tracked_value_map[key] = [(x, val)]
         data_new = y.copy()
         data_new['x'] = x
         if self.max_iter is not None:
@@ -147,7 +179,7 @@ class Graph(object):
             elif kind == 'min':
                 val_new = min(val, val_old)
             if val_new != val_old:
-                stats_update[key] = { kind: val_new }
+                stats_update[key] = {kind: val_new}
         self.stats.update(stats_update)
         if any(stats_update):
             stats = self.stats
@@ -235,14 +267,16 @@ class Session(object):
             if WARNINGS:
                 print(e)
 
-    def graph(self, title='', xlabel='', ylabel='', kind=None):
+    def graph(self, title='', xlabel='', ylabel='', kind=None, display_interval=None):
         assert kind in [None, 'min', 'max']
-        graph = Graph(self, title=title, xlabel=xlabel, ylabel=ylabel, kind=kind, max_iter=self.max_iter)
+        graph = Graph(self, title=title, xlabel=xlabel, ylabel=ylabel,
+                      kind=kind, max_iter=self.max_iter, display_interval=display_interval)
         self.graph_list.append(graph)
         return graph
 
-    def Graph(self, title='', xlabel='', ylabel='', kind=None):
+    def Graph(self, title='', xlabel='', ylabel='', kind=None, display_interval=None):
         assert kind in [None, 'min', 'max']
-        graph = Graph(self, title=title, xlabel=xlabel, ylabel=ylabel, kind=kind, max_iter=self.max_iter)
+        graph = Graph(self, title=title, xlabel=xlabel, ylabel=ylabel,
+                      kind=kind, max_iter=self.max_iter, display_interval=self.display_interval)
         self.graph_list.append(graph)
         return graph
