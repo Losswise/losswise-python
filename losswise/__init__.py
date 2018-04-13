@@ -1,3 +1,4 @@
+import sys
 import os
 import threading
 import json
@@ -33,6 +34,10 @@ def get_git_info():
         FNULL = open(os.devnull, 'w')
         git_info['diff'] = str(subprocess.Popen(['git', 'diff'],
                                stdout=subprocess.PIPE, stderr=FNULL).communicate()[0])
+        size_mb = sys.getsizeof(git_info['diff']) / 1000000.
+        if size_mb > 0.2:
+            git_info['diff'] = "git diff too large to show here"
+            print("Losswise warning: git diff too large to track.")
         git_info['branch'] = str(subprocess.Popen(['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
                                  stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].replace('\n', ''))
         git_remote = str(subprocess.Popen(['git', 'remote', '-v'],
@@ -127,10 +132,10 @@ class Graph(object):
 
     def append(self, *args):
         if len(args) == 1:
-            x = self.x
+            x = int(self.x)
             y_raw = args[0]
         elif len(args) == 2:
-            x = args[0]
+            x = int(args[0])
             y_raw = args[1]
         else:
             raise ValueError("Append method only accepts one or two arguments.")
@@ -143,7 +148,7 @@ class Graph(object):
             if key in self.tracked_value_map:
                 tracked_value_list = self.tracked_value_map[key]
                 tracked_value_list.append((x, val))
-                if x < self.max_iter - 1 and x % self.display_interval != 0:
+                if self.max_iter is not None and x < self.max_iter - 1 and x % self.display_interval != 0:
                     return
                 tracked_value_len = len(tracked_value_list)
                 diff = tracked_value_list[tracked_value_len - 1][0] - tracked_value_list[tracked_value_len - 2][0]

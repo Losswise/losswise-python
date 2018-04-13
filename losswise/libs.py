@@ -6,6 +6,8 @@ class LosswiseKerasCallback(Callback):
     def __init__(self, tag=None, params={}):
         # model hyper parameters, json serializable Python object
         self.tag = tag
+        if not isinstance(params, dict):
+            raise RuntimeError("\"params\" argument must be a valid python dictionary")
         self.params_data = params
         self.graph_map = {}
         super(LosswiseKerasCallback, self).__init__()
