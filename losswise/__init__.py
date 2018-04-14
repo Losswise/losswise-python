@@ -155,7 +155,7 @@ class Graph(object):
                 if diff == 1 and tracked_value_len >= self.display_interval > 1:
                     xy_tuple_values = tracked_value_list[-self.display_interval:]
                     y_values = [xy_tuple[1] for xy_tuple in xy_tuple_values]
-                    y_smooth = sum(y_values) / tracked_value_len
+                    y_smooth = sum(y_values) / len(y_values)
                     y[key] = float(y_smooth)
                 else:
                     y[key] = float(y_raw[key])

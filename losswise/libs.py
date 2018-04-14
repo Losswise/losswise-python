@@ -3,13 +3,14 @@ from keras.callbacks import Callback
 
 
 class LosswiseKerasCallback(Callback):
-    def __init__(self, tag=None, params={}):
+    def __init__(self, tag=None, params={}, display_interval=None):
         # model hyper parameters, json serializable Python object
         self.tag = tag
         if not isinstance(params, dict):
             raise RuntimeError("\"params\" argument must be a valid python dictionary")
         self.params_data = params
         self.graph_map = {}
+        self.display_interval = display_interval
         super(LosswiseKerasCallback, self).__init__()
     def on_train_begin(self, logs={}):
         if 'epochs' in self.params and 'samples' in self.params and 'batch_size' in self.params:
@@ -29,7 +30,7 @@ class LosswiseKerasCallback(Callback):
                 kind = 'max'
             else:
                 kind = 'min'
-            self.graph_map[metric] = self.session.graph(metric, kind=kind)
+            self.graph_map[metric] = self.session.graph(metric, kind=kind, display_interval=self.display_interval)
         self.x = 0
     def on_epoch_end(self, epoch, logs={}):
         for metric in self.metric_list:
