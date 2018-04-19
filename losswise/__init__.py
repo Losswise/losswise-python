@@ -11,6 +11,8 @@ from six import iteritems
 import subprocess
 from threading import Thread
 import re
+import base64
+import io
 
 
 API_KEY = None
@@ -194,6 +196,62 @@ class Graph(object):
         self.x = self.x + 1
 
 
+class ImageSequence(object):
+    def __init__(self, session_id, x, name):
+        json_data = {"session_id": session_id, "name": name, "x": x, "type": "image"}
+        json_message = json.dumps(json_data)
+        self.prediction_sequence_id = None
+        try:
+            r = requests.post(BASE_URL + '/api/v1/prediction-sequences',
+                              data=json_message,
+                              headers={"Authorization": API_KEY, "Content-type": "application/json"})
+            json_resp = r.json()
+        except Exception as e:
+            print(e)
+            return
+        if json_resp.get('success', False) is True:
+            self.prediction_sequence_id = json_resp["prediction_sequence_id"]
+        else:
+            error = json_resp.get('error', '')
+            error_msg = 'Unable to create image sequence: %s' % error
+            print(error_msg)
+
+    def append(self, image_pil, image_id='', outputs={}, metrics={}):
+        if self.prediction_sequence_id is None:
+            print("Skipping append due to failed create image sequence API call.")
+            return
+        image_buffer = io.BytesIO()
+        try:
+            image_pil.save(image_buffer, format='PNG')
+        except AttributeError as e:
+            print("Unable to save image as PNG! Make sure you're using a PIL image.")
+            return
+        contents = image_buffer.getvalue()
+        image_buffer.close()
+        image_data = base64.b64encode(contents).decode('utf-8')
+        json_data = {"prediction_sequence_id": self.prediction_sequence_id,
+                        "image": image_data,
+                        "metrics": metrics,
+                        "outputs": outputs,
+                        "image_id": image_id}
+        json_message = json.dumps(json_data)
+        try:
+            r = requests.post(BASE_URL + '/api/v1/image-prediction',
+                              data=json_message,
+                              headers={"Authorization": API_KEY, "Content-type": "application/json"})
+            json_resp = r.json()
+            err = json_resp.get("error", None)
+            if json_resp['success'] is False and err:
+                print ("Request failed! " + err)
+        except requests.exceptions.ConnectionError:
+            if WARNINGS:
+                print("Warning: request failed due to connection error.")
+        except Exception as e:
+            if WARNINGS:
+                print("Warning: POST request failure.")
+                print(e)
+
+
 class Session(object):
     def __init__(self, tag=None, max_iter=None, params={}, track_git=True):
         self.graph_list = []
@@ -271,6 +329,10 @@ class Session(object):
         except Exception as e:
             if WARNINGS:
                 print(e)
+
+    def image_sequence(self, x, name=''):
+        seq = ImageSequence(self.session_id, x, name)
+        return seq
 
     def graph(self, title='', xlabel='', ylabel='', kind=None, display_interval=None):
         assert kind in [None, 'min', 'max']
