@@ -3,7 +3,7 @@ from keras.callbacks import Callback
 
 
 class LosswiseKerasCallback(Callback):
-    def __init__(self, tag=None, params={}, track_git=True, display_interval=None):
+    def __init__(self, tag=None, params={}, track_git=True, display_interval=None, max_iter=None):
         # model hyper parameters, json serializable Python object
         self.tag = tag
         if not isinstance(params, dict):
@@ -12,14 +12,17 @@ class LosswiseKerasCallback(Callback):
         self.track_git = track_git
         self.graph_map = {}
         self.display_interval = display_interval
+        self.max_iter = max_iter
         super(LosswiseKerasCallback, self).__init__()
     def on_train_begin(self, logs={}):
-        if 'epochs' in self.params and 'samples' in self.params and 'batch_size' in self.params:
-            self.max_iter = int(self.params['epochs'] * self.params['samples'] / self.params['batch_size'])
-        elif 'steps_per_epoch' in self.params and 'epochs' in self.params:
-            self.max_iter = self.params['steps_per_epoch'] * self.params['epochs']
-        else:
-            self.max_iter = None
+        if self.max_iter is None:
+            if 'epochs' in self.params and 'samples' in self.params and 'batch_size' in self.params:
+                self.max_iter = int(self.params['epochs'] * self.params['samples'] / self.params['batch_size'])
+            elif 'steps_per_epoch' in self.params and 'epochs' in self.params:
+                self.max_iter = self.params['steps_per_epoch'] * self.params['epochs']
+            else:
+                print("Warning: Please specify max_iter!")
+                print("You have not set max_iter, for example do LosswiseKerasCallback(..., max_iter=10000)")
         self.session = Session(tag=self.tag, max_iter=self.max_iter, params=self.params_data,
                                track_git=self.track_git)
         self.metric_list = []

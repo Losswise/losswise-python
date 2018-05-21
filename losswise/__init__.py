@@ -309,7 +309,7 @@ class Session(object):
                 except Exception as e:
                     if WARNINGS:
                         print(e)
-                time.sleep(30)
+                time.sleep(10)
         self.thread = Thread(target=keepalive, args=(self.stop_event,))
         self.thread.daemon = True
         self.thread.start()
