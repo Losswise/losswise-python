@@ -7,7 +7,9 @@ class LosswiseKerasCallback(Callback):
         # model hyper parameters, json serializable Python object
         self.tag = tag
         if not isinstance(params, dict):
-            raise RuntimeError("\"params\" argument must be a valid python dictionary")
+            raise TypeError("\"params\" argument must be a valid python dictionary")
+        if tag is not None and not isinstance(tag, str):
+            raise TypeError("\"tag\" argument must be a valid python string")
         self.params_data = params
         self.track_git = track_git
         self.graph_map = {}

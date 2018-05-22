@@ -217,6 +217,12 @@ class ImageSequence(object):
             print(error_msg)
 
     def append(self, image_pil, image_id='', outputs={}, metrics={}):
+        if not isinstance(image_id, str):
+            raise TypeError("\"image_id\" argument must be a valid python string")
+        if not isinstance(outputs, dict):
+            raise TypeError("\"outputs\" argument must be a valid python dictionary")
+        if not isinstance(metrics, dict):
+            raise TypeError("\"metrics\" argument must be a valid python dictionary")
         if self.prediction_sequence_id is None:
             print("Skipping append due to failed create image sequence API call.")
             return
@@ -230,10 +236,10 @@ class ImageSequence(object):
         image_buffer.close()
         image_data = base64.b64encode(contents).decode('utf-8')
         json_data = {"prediction_sequence_id": self.prediction_sequence_id,
-                        "image": image_data,
-                        "metrics": metrics,
-                        "outputs": outputs,
-                        "image_id": image_id}
+                     "image": image_data,
+                     "metrics": metrics,
+                     "outputs": outputs,
+                     "image_id": image_id}
         json_message = json.dumps(json_data)
         try:
             r = requests.post(BASE_URL + '/api/v1/image-prediction',
