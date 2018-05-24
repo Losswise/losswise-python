@@ -22,6 +22,10 @@ class LosswiseKerasCallback(Callback):
                 self.max_iter = int(self.params['epochs'] * self.params['samples'] / self.params['batch_size'])
             elif 'steps_per_epoch' in self.params and 'epochs' in self.params:
                 self.max_iter = self.params['steps_per_epoch'] * self.params['epochs']
+            elif 'samples_per_epoch' in self.params and 'epochs' in self.params:
+                self.max_iter = self.params['samples_per_epoch'] * self.params['epochs']
+            elif 'steps' in self.params and 'epochs' in self.params:
+                self.max_iter = self.params['steps'] * self.params['epochs']
             else:
                 print("Warning: Please specify max_iter!")
                 print("You have not set max_iter, for example do LosswiseKerasCallback(..., max_iter=10000)")
