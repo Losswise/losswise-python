@@ -17,7 +17,6 @@ import io
 
 API_KEY = None
 BASE_URL = 'https://api.losswise.com'
-WARNINGS = True
 
 
 def set_api_key(api_key):
@@ -72,12 +71,15 @@ def worker():
         headers = {"Authorization": API_KEY, "Content-type": "application/json"}
         try:
             r = requests.post(url, data=json_message, headers=headers)
+            json_resp = r.json()
+            if json_resp.get('error', None):
+                print(json_resp['error'])
+                print(point_list)
+                print(stats_map)
         except requests.exceptions.ConnectionError:
-            if WARNINGS:
-                print("Warning: request failed.")
+            print("Losswise warning: request failed.")
         except Exception as e:
-            if WARNINGS:
-                print(e)
+            print(e)
         for _ in range(len(point_list)):
             work_queue.task_done()
 
@@ -145,7 +147,7 @@ class Graph(object):
         y = {}
         for key, val in iteritems(y_raw):
             if math.isnan(val):
-                print("Warning: skipping '%s' due to NaN value." % key)
+                print("Losswise warning: skipping '%s' due to NaN value." % key)
                 continue
             if key in self.tracked_value_map:
                 tracked_value_list = self.tracked_value_map[key]
@@ -250,12 +252,10 @@ class ImageSequence(object):
             if json_resp['success'] is False and err:
                 print ("Request failed! " + err)
         except requests.exceptions.ConnectionError:
-            if WARNINGS:
-                print("Warning: request failed due to connection error.")
+            print("Losswise warning: request failed due to connection error.")
         except Exception as e:
-            if WARNINGS:
-                print("Warning: POST request failure.")
-                print(e)
+            print("Losswise warning: POST request failure.")
+            print(e)
 
 
 class Session(object):
@@ -310,11 +310,9 @@ class Session(object):
                                       data=json_message,
                                       headers={"Authorization": API_KEY, "Content-type": "application/json"})
                 except requests.exceptions.ConnectionError:
-                    if WARNINGS:
-                        print("Warning: request failed.")
+                    print("Losswise warning: request failed.")
                 except Exception as e:
-                    if WARNINGS:
-                        print(e)
+                    print(e)
                 time.sleep(10)
         self.thread = Thread(target=keepalive, args=(self.stop_event,))
         self.thread.daemon = True
@@ -330,11 +328,9 @@ class Session(object):
                               data=json_message,
                               headers={"Authorization": API_KEY, "Content-type": "application/json"})
         except requests.exceptions.ConnectionError:
-            if WARNINGS:
-                print("Warning: request failed.")
+            print("Losswise warning: request failed.")
         except Exception as e:
-            if WARNINGS:
-                print(e)
+            print(e)
 
     def image_sequence(self, x, name=''):
         seq = ImageSequence(self.session_id, x, name)
