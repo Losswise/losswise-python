@@ -149,6 +149,9 @@ class Graph(object):
             if math.isnan(val):
                 print("Losswise warning: skipping '%s' due to NaN value." % key)
                 continue
+            if math.isinf(val):
+                print("Losswise warning: skipping '%s' due to Infinite value." % key)
+                continue
             if key in self.tracked_value_map:
                 tracked_value_list = self.tracked_value_map[key]
                 tracked_value_list.append((x, val))
