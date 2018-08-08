@@ -15,8 +15,8 @@ import base64
 import io
 
 
-API_KEY = None
-BASE_URL = 'https://api.losswise.com'
+API_KEY = os.environ.get('LW_API_KEY', None)
+BASE_URL = os.environ.get('LW_BASE_URL', 'https://api.losswise.com')
 
 
 def set_api_key(api_key):
