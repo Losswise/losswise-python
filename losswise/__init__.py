@@ -280,7 +280,8 @@ class Session(object):
             'tag': self.tag,
             'params': params,
             'max_iter': max_iter,
-            'env': {}
+            'env': {},
+            'job_id': os.environ.get("LBR_JOB_ID", "")
         }
         if track_git:
             json_data['git'] = git_info
