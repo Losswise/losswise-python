@@ -281,13 +281,13 @@ class Session(object):
             'params': params,
             'max_iter': max_iter,
             'env': {},
-            'job_id': os.environ.get("LBR_JOB_ID", "")
+            'lbr_build_uuid': os.environ.get("LBR_BUILD_UUID", "")
         }
         if track_git:
             json_data['git'] = git_info
         for env_var in ['BUILDKITE_BUILD_URL', 'BUILDKITE_REPO',
                         'BUILDKITE_PIPELINE_PROVIDER', 'BUILDKITE_BRANCH',
-                        'LBR_JOB_ID', 'LBR_AGENT_ID']:
+                        'LBR_BUILD_UUID', 'LBR_AGENT_ID']:
             if env_var in os.environ:
                 json_data['env'][env_var] = os.environ[env_var]
         json_message = json.dumps(json_data)
