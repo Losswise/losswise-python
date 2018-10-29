@@ -18,7 +18,7 @@ class LosswiseKerasCallback(Callback):
         super(LosswiseKerasCallback, self).__init__()
     def on_train_begin(self, logs={}):
         if self.max_iter is None:
-            if 'epochs' in self.params and 'samples' in self.params and 'batch_size' in self.params:
+            if 'epochs' in self.params and 'samples' in self.params and self.params['samples'] is not None and 'batch_size' in self.params and self.params['batch_size'] is not None:
                 self.max_iter = int(self.params['epochs'] * self.params['samples'] / self.params['batch_size'])
             elif 'steps_per_epoch' in self.params and 'epochs' in self.params:
                 self.max_iter = self.params['steps_per_epoch'] * self.params['epochs']
