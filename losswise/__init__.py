@@ -354,3 +354,22 @@ class Session(object):
                       kind=kind, max_iter=self.max_iter, display_interval=self.display_interval)
         self.graph_list.append(graph)
         return graph
+
+    def set_values(self, values):
+        if not isinstance(values, dict):
+            print("set_values must take a python dictionary as input! skipping")
+            return
+        json_message = json.dumps({'session_id': self.session_id, 'values': values})
+        url = BASE_URL + '/api/v1/values'
+        headers = {"Authorization": API_KEY, "Content-type": "application/json"}
+        try:
+            r = requests.post(url, data=json_message, headers=headers)
+            json_resp = r.json()
+            if json_resp.get('error', None):
+                print(json_resp['error'])
+                print(point_list)
+                print(stats_map)
+        except requests.exceptions.ConnectionError:
+            print("Losswise warning: request failed.")
+        except Exception as e:
+            print(e)
