@@ -32,20 +32,16 @@ def set_base_url(base_url):
 def get_git_info():
     git_info = {'diff' : '', 'branch': '', 'url': ''}
     try:
-        FNULL = open(os.devnull, 'w')
-        git_info['diff'] = str(subprocess.Popen(['git', 'diff'],
-                               stdout=subprocess.PIPE, stderr=FNULL).communicate()[0])
+        git_info['diff'] = subprocess.check_output(['git', 'diff']).decode('utf8')
         size_mb = sys.getsizeof(git_info['diff']) / 1000000.
         if size_mb > 0.2:
             git_info['diff'] = "git diff too large to show here"
             print("Losswise warning: git diff too large to track.")
-        git_info['branch'] = str(subprocess.Popen(['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
-                                 stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].replace('\n', ''))
-        git_remote = str(subprocess.Popen(['git', 'remote', '-v'],
-                         stdout=subprocess.PIPE, stderr=FNULL).communicate()[0].split("  ")[0])
+        git_info['branch'] = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).decode('utf8').strip()
+        git_remote = subprocess.check_output(['git', 'remote', '-v']).decode('utf8')
         git_info['url'] = re.findall('\S*\.git', git_remote)[0]
     except Exception as e:
-        pass
+        print(e)
     return git_info
 
 
